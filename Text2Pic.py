@@ -5,16 +5,36 @@ import os
 import codecs
 import time
 import shutil
+import codecs
+import chardet
 from PIL import Image,ImageDraw,ImageFont
 
 reload(sys)
 sys.setdefaultencoding('utf8')
     
 def Text2Pic(text_file):
+    ###################################################################
+    #############for encode detect
+    # pic_file, txt_ext = os.path.splitext(text_file)
+    # if txt_ext != '.txt':
+        # return False
+    # title_encoding = 'utf-8'
+    # det_ret = chardet.detect(text_file)
+    # if det_ret:
+        # print det_ret
+        # title_encoding = det_ret['encoding']
+        # print 'title_encoding', title_encoding
+    #text_file = text_file.decode(title_encoding)
+    
+    ###################################################################
+    #if isinstance(text_file, unicode)
+    text_file = text_file.decode('gbk')    ######### GBK !!!!
     pic_file, txt_ext = os.path.splitext(text_file)
     if txt_ext != '.txt':
         return False
-    title_text = pic_file.split('\\')[-1]
+    title_text = os.path.split(pic_file)[-1]
+    print 'title', title_text
+    
     pic_file = pic_file + '.png'
     print '   ', text_file, "===>", pic_file
     
@@ -32,15 +52,23 @@ def Text2Pic(text_file):
     title_font = ImageFont.truetype('simsun.ttc', total_width/15)
     normal_font = ImageFont.truetype('simsun.ttc', total_width/20)
     ################################################################
-    
-    with open(text_file, 'r') as file_hd: 
+    normal_encoding = 'utf-8'
+    with open(text_file, 'rb') as file_hd:
+        raw_data = file_hd.read(4096)
+        det_ret = chardet.detect(raw_data)
+        if det_ret:
+            print det_ret
+            normal_encoding = det_ret['encoding']
+            print 'normal_encoding', normal_encoding
+            
+    with codecs.open(text_file, 'r', normal_encoding) as file_hd: 
         lines = file_hd.readlines()
         line_height = normal_font.getsize(title_text)[1]*1.5    #####行间距1.5倍
         
         max_width = 0
         line_num = len(lines)
         for i, line in enumerate(lines):
-            normal_text = line.decode('utf-8').strip()
+            normal_text = line.strip()
             tmp_width = (total_width - normal_font.getsize(normal_text)[0])/2
             if max_width < tmp_width:
                 max_width = tmp_width
@@ -60,7 +88,8 @@ def Text2Pic(text_file):
         draw.text((title_start_x, title_start_y), title_text, title_color, font=title_font)
         
         for i, line in enumerate(lines):
-            normal_text = line.decode('utf-8').strip()
+            normal_text = line.strip()
+            print '    [%d]'%i, normal_text
             cure_pos_y = normal_start_y + line_height*i
             draw.text((normal_start_x, cure_pos_y), normal_text, normal_color, font=normal_font)
             
@@ -88,7 +117,7 @@ if "__main__" == __name__:
                 #print root, dirs, files
                 for file in files:
                     #print file
-                    Text2Pic(os.path.join(root, file) )
+                    Text2Pic(os.path.join(root, file))
     except Exception, err:
         #print err
         print '===> Exception'
