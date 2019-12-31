@@ -12,26 +12,31 @@ from PIL import Image,ImageDraw,ImageFont
 reload(sys)
 sys.setdefaultencoding('utf8')
     
+def GetDataEncoding(data):
+    data_encoding = None
+    det_ret = chardet.detect(data)
+    if det_ret:
+        data_encoding = det_ret['encoding']
+        #print det_ret
+        #print 'data_encoding', data_encoding
+    if data_encoding == 'windows-1251':
+        data_encoding = 'gbk'
+        #print '    windows-1251 ==> gbk'
+    return data_encoding
+    
 def Text2Pic(text_file):
-    ###################################################################
-    #############for encode detect
-    # pic_file, txt_ext = os.path.splitext(text_file)
-    # if txt_ext != '.txt':
-        # return False
-    # title_encoding = 'utf-8'
-    # det_ret = chardet.detect(text_file)
-    # if det_ret:
-        # print det_ret
-        # title_encoding = det_ret['encoding']
-        # print 'title_encoding', title_encoding
-    #text_file = text_file.decode(title_encoding)
     
     ###################################################################
-    #if isinstance(text_file, unicode)
-    text_file = text_file.decode('gbk')    ######### GBK !!!!
+    #############for encode detect
+    title_encoding = GetDataEncoding(text_file)
+    text_file = text_file.decode(title_encoding)
+    #text_file = text_file.decode('gbk')    ######### GBK !!!!
+    ###################################################################
     pic_file, txt_ext = os.path.splitext(text_file)
     if txt_ext != '.txt':
         return False
+        
+    print '\n\n==================================', text_file
     title_text = os.path.split(pic_file)[-1]
     print 'title', title_text
     
@@ -55,11 +60,8 @@ def Text2Pic(text_file):
     normal_encoding = 'utf-8'
     with open(text_file, 'rb') as file_hd:
         raw_data = file_hd.read(4096)
-        det_ret = chardet.detect(raw_data)
-        if det_ret:
-            print det_ret
-            normal_encoding = det_ret['encoding']
-            print 'normal_encoding', normal_encoding
+        normal_encoding = GetDataEncoding(raw_data)
+        print 'normal_encoding', normal_encoding
             
     with codecs.open(text_file, 'r', normal_encoding) as file_hd: 
         lines = file_hd.readlines()
